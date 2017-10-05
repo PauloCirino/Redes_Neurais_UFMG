@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "require(tidyverse)\nrequire(mlbench)\nsource('./src/methods.R')\n\nbaseImgDir <- './Article/imgs'\nif(!dir.exists(baseImgDir)){\n    dir.create(baseImgDir)\n}\n\nData <- mlbench::mlbench.2dnormals(n = 500, sd = 0.55)\nX <- Data$x\nY <- Data$classes\nQ <- getQuality(X = X, Y = as.numeric(Y) - 1)\nData <- data.frame(X1 = X[, 1], X2 = X[, 2], Y = as.numeric(Y) - 1, Q = Q) \n\nData %>%\n    ggplot2::ggplot(ggplot2::aes(x = X1, y = X2, color = Q)) +\n    ggplot2::geom_point() + \n    ggplot2::scale_color_continuous()\n\n",
+    "created" : 1507128654490.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2072524574",
+    "id" : "2084EF88",
+    "lastKnownWriteTime" : 1507129417,
+    "last_content_update" : 1507129417985,
+    "path" : "~/Desktop/Facudade/RedesNeurais/TrabalhoParcial/Article/createGraphs.R",
+    "project_path" : "Article/createGraphs.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

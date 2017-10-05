@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "rm(list = ls())\nrequire('tidyverse')\nrequire('plotly')\nrequire('mlbench')\nsource('src/methods.R')\nrequire('mnist')\n\ndata(mnist) \nX <- rbind(mnist$train$x, mnist$test$x)\nY <- c(mnist$train$y, mnist$test$y)\n\npos5 <- Y == 5\nY[pos5] <- 1\nY[!pos5] <- 0\n    \nQ <- getQuality(X = X, Y = Y)\nnetworkSize <- c(60, 10)\nseed <- 1234\nmethodName <- 'briSelectionPlusPlusLogNeg'\n\niterResult <- runModel(X = X, Y = Y, Q = Q, \n                       networkSize = networkSize,\n                       functionName = methodName,\n                       seed = seed)\n",
+    "created" : 1506966884298.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1990158715",
+    "id" : "16B8F65B",
+    "lastKnownWriteTime" : 1507121406,
+    "last_content_update" : 1507121406,
+    "path" : "~/Desktop/Facudade/RedesNeurais/TrabalhoParcial/src/main.R",
+    "project_path" : "src/main.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

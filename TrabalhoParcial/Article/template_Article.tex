@@ -1,0 +1,131 @@
+\documentclass[]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{breakurl} 
+\usepackage[breaklinks]{hyperref}
+\usepackage{lipsum}
+\usepackage{multicol}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{psfrag}
+\usepackage{amssymb}
+\usepackage{graphics}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{tabularx}
+\usepackage{filecontents}
+\usepackage{url}
+\usepackage{multirow}
+\usepackage{mathtools}
+\usepackage{scrextend}
+\usepackage[flushleft]{threeparttable}
+\usepackage{subfigure}
+\usepackage{textcomp}
+\usepackage{tablefootnote}
+
+\def\UrlBreaks{\do\/\do-}
+
+\algblockdefx[Foreach]{Foreach}{EndForeach}[1]{\textbf{foreach} #1 \textbf{do}}{\textbf{end foreach}}
+
+\providecommand{\algorithminput}[1]{
+	~\\
+	\textbf{Input:}\\
+	\begin{tabularx}{\textwidth}{rl}#1\end{tabularx}
+}
+\providecommand{\algorithmoutput}[1]{
+	~\\
+	\textbf{Output:}\\
+	\begin{tabularx}{\textwidth}{rl}#1\end{tabularx}
+}
+
+\newcommand{\Break}{\textbf{break}}
+
+
+%opening
+\title{\textit{Undersampling} Representativo de Classe Dominante por Fator de Qualidade Baseado em Multiplicadores de Lagrange  }
+\author{Paulo Cirino}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+	
+\end{abstract}
+
+\section{Introdução}
+
+Esse trabalho é fundamento em um algorítimo de \textit{fuzzy clustering}, à ser publicado, que foi criado para acelerar o método \textit{Fuzzy C Means}. Ele atinge seu objetivo por meio da remoção de pontos da bordas com o auxilio de um fator de qualidade, que diz respeito a pertinência de cada amostra à todos os \textit{clusters}.
+
+Os algorítimo de  \textit{fuzzy clustering } permitem que uma amostra de um \textit{data set} pertença, ao mesmo tempo, à múltiplos agrupamentos. O nível que uma amostra pertence a cada \textit{cluster} é tradicionalmente chamado de \textbf{pertinência $\mu_{i}(x_j)$}, que é a pertinência da amostra $x_j$ para o \textit{cluster} $i$.
+
+A função de custo $J$, associada à problemas de \textit{fuzzy clustering}, pode ser definida em 
+\ref{eqJ1}.
+\begin{equation}
+\label{eqJ1}
+\begin{aligned}
+& {\text{min}}
+& & J \\
+& \text{sujeito a}
+& & \sum_{k=1}^c u_{ik}=1,   \quad k=1,2,...,N \\
+\end{aligned}
+\end{equation}
+
+Onde $J$ é definido em \ref{eqJ2}.
+\begin{equation}
+\label{eqJ2}
+J = \sum_{i=1}^c \sum_{k=1}^N u_{ik}^2 d_{ik}^2
+\end{equation} 
+
+
+Nessa situação $\mu_{ik}$, é a pertinência da amostra $k$ em relação ao centro $i$. Adotando a solução de Multiplicadores de Lagrange, a nova função de custo assume a forma descrita em \ref{eqJ22}, com derivadas parciais \ref{eqdjdl} e \ref{eqdjdu}. 
+
+\begin{equation}
+\label{eqJ22}
+J = \sum_{i=1}^c \sum_{k=1}^N \left [  u_{ik}^2 d_{ik}^2 - \lambda (\sum_{m=1}^c u_{mk}-1)\right]
+\end{equation}
+
+\begin{equation}
+\label{eqdjdl}
+{{\partial J} \over {\partial \lambda}} = \sum_{m=1}^c u_{mk}-1 : {{\partial J} \over {\partial \lambda}} = 0 \implies \sum_{i=1}^c u_{ik}=1
+\end{equation}
+
+\begin{equation}
+\label{eqdjdu}
+{{\partial J} \over {\partial u_{st}}} = 2u_{st} d_{st}^2 - \lambda : {{\partial J} \over {\partial u_{st}}} = 0 \implies u_{st} = {\lambda \over {2d_{st}^2}}
+\end{equation}
+
+Assim, a equação \ref{eqLamdaT}, representa cada um dos multiplicadores de Lagrange do \textit{data set}.
+
+\begin{equation}
+\label{eqLamdaT}
+\lambda_{k} = {2 \over {\sum_{j=1}^c {1 \over d_{jk}^2}}}, \quad k=1,2...,N
+\end{equation}
+
+Assim é possível definir uma medida de qualidade para cada amostra, descrita na equação, \ref{eqqk}. A medida $q_k$ de qualidade, é obtida para cada amostra $\mathbf{x}_k$ de $\mathbf{X}=\{x_i \in \mathbb{R^d} | i=1...N\}$, e representa uma medida de incerteza da pertinência $\mu_{ik}$.
+
+\begin{equation}
+\label{eqqk}
+q_k = 1 - c^c \prod_{i=1}^c {1 \over \mu_{ik}}
+\end{equation}
+
+Substituindo a equação \ref{eqdjdu} em \ref{eqqk}, podemos representar $q_k$ em \ref{eqqk_lambda_a0}
+
+\begin{equation}
+\label{eqqk_lambda_a0}
+q_k = 1 - {2 \over {\lambda_k}} c^c \prod_{i=1}^c d_{ik}^2
+\end{equation}
+
+É importante notar que amostras fortemente ligadas a um determinado centro, terão $q_k$ muito próximo à $1$, aquelas que estão distantes terão valores muito próximos a 0.
+
+
+\section{Método}
+
+\section{Resultados}
+
+\section{Conclusão}
+
+\end{document}
