@@ -155,7 +155,7 @@ briSelectionPlusPlusLogNeg <- function(X, Y, Q, seed = Sys.time()){
 runModel <- function(X, Y, Q, networkSize, functionName,
                      seed = Sys.time(),
                      learnRate = 0.05, momentum = 0.01, 
-                     maxit = 100, evalMetric = mxnet::mx.metric.accuracy,
+                     maxit = 25, evalMetric = mxnet::mx.metric.accuracy,
                      trainAndTestRatio = 0.3){
     set.seed(seed)
     method <- get(functionName)
@@ -175,6 +175,7 @@ runModel <- function(X, Y, Q, networkSize, functionName,
     QtrainSelected <- result[['Q']]
     colnames(XtrainSelected) <- colnames(X)
     
+    initTs <- as.numeric(Sys.time())
     model <- mxnet::mx.mlp( XtrainSelected, YtrainSelected,
                             hidden_node = networkSize,
                             out_node = 2,
@@ -183,6 +184,7 @@ runModel <- function(X, Y, Q, networkSize, functionName,
                             learning.rate = learnRate,
                             momentum = momentum,
                             eval.metric = evalMetric )
+    compTime <- as.numeric(Sys.time()) - initTs
     
     predYtrain <- t( predict(model, XtrainSelected) )
     predYtest <- t( predict(model, Xtest) )
@@ -195,7 +197,9 @@ runModel <- function(X, Y, Q, networkSize, functionName,
     testAUC <- ModelMetrics::auc(actual = Ytest, predicted = predYtest[, 2])
     testMetrics <- c(testConfMatrix$overall, testConfMatrix$byClass, AUC = testAUC)
     
-    results <- c(functionName = functionName,
+    results <- c(functionName = as.character( functionName ),
+                 nTrainningPoints = length(YtrainSelected),
+                 compTime = compTime,
                  seed = seed,
                  trainAndTestRatio = trainAndTestRatio,
                  maxit = maxit,
