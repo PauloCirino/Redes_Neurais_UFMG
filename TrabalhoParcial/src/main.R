@@ -2,23 +2,29 @@ rm(list = ls())
 require('tidyverse')
 require('plotly')
 require('mlbench')
+require('mxnet')
+
 source('src/methods.R')
-require('mnist')
+source('src/makeMNISTDataLists.R')
+source('src/makePokerDataList.R')
+source('src/makeSkinDataList.R')
 
-data(mnist) 
-X <- rbind(mnist$train$x, mnist$test$x)
-Y <- c(mnist$train$y, mnist$test$y)
+seedsVet <- 1:10
+networkSizesList <- list(c(10),
+                         c(25),
+                         c(50),
+                         c(100),
+                         c(200),
+                         c(10, 5),
+                         c(25, 5),
+                         c(25, 10), 
+                         c(50, 20), 
+                         c(100, 50) )
+DataList <- list()
+DataList <- makeMNISTDataList(DataList = DataList)
+DataList <- makePokerDataList(DataList = DataList)
+DataList <- makeSkinData(DataList = DataList)
 
-pos5 <- Y == 5
-Y[pos5] <- 1
-Y[!pos5] <- 0
-    
-Q <- getQuality(X = X, Y = Y)
-networkSize <- c(60, 10)
-seed <- 1234
-methodName <- 'briSelectionPlusPlusLogNeg'
-
-iterResult <- runModel(X = X, Y = Y, Q = Q, 
-                       networkSize = networkSize,
-                       functionName = methodName,
-                       seed = seed)
+results <- runAllTests(DataList = DataList, 
+                        networkSizesList = networkSizesList,
+                        seedsVet = seedsVet)
