@@ -26,6 +26,8 @@
 \usepackage{subfigure}
 \usepackage{textcomp}
 \usepackage{tablefootnote}
+\usepackage{graphicx}
+
 
 \def\UrlBreaks{\do\/\do-}
 
@@ -145,14 +147,14 @@
 	
 	O que é comum em todas as abordagens é que foram selecionadas $N_{minority}$ das $N_{majority}$ amostras da classe majoritária, tal que $N_{minority} < N_{majority}$.
 	
-	\subsection{briSelection} 
+	\subsection{briSelect} 
 	
 	A primeira abordagem proposta foi a de \textit{briSelection}, onde são selecionadas as $N_{minority}$ amostras da classe majoritária com maior fator de qualidade. 
 	
 	Essa abordagem têm o efeito de selecionar os pontos marginais da classe dominante. Isso pode ser positivo no sentido de amostras apenas os pontos que definem o contorno da superfície de decisão, porém, pode ser muito negativo em situações onde os dados possuem muitos \textit{outliers}. 
 	
-	\subsection{briSelection++} 
-	s abordagem \textit{briSelection++} é inspiradas na metodologia de inicialização do método \textbf{FCM++}.
+	\subsection{briSelect++} 
+	s abordagem \textit{briSelect++} é inspiradas na metodologia de inicialização do método \textbf{FCM++}.
 	
 	Isso é feito de forma que quanto maior a qualidade de uma amostra da classe dominantes, maior a probabilidade de essa amostra ser selecionada, assim como mostra a equação \ref{briSelectionPlusPlusEq}.
 	
@@ -163,8 +165,8 @@
 	
 	Essa metodologia possui a vantagem de amostrar a distribuição da classe dominante como um todo, nas regiões centrais por conta da alta densidade de pontos e nas periferias por causa do alto índice de qualidade. Isso possui uma vantagem de representar todos os dados e não só as bordas.
 	
-	\subsection{briSelection$--$} 
-	A metodologia \textit{briSelection$--$} é exatamente igual ao \textit{$briSelection++$}, só que $q_k$ é substituído por $\frac{1}{q_k}$, como mostra a formula \ref{briSelectionNegNegEq}.
+	\subsection{briSelect$--$} 
+	A metodologia \textit{briSelection$--$} é exatamente igual ao \textit{$briSelect++$}, só que $q_k$ é substituído por $\frac{1}{q_k}$, como mostra a formula \ref{briSelectionNegNegEq}.
 	
 		\begin{equation}
 		\label{briSelectionNegNegEq}
@@ -174,13 +176,130 @@
 	Essa alteração na formulação permite que o centro da distribuição da classe dominante seja muito bem representado, mas ainda criando uma probabilidade de os pontos da margem também serem amostrados.
 	
 	\subsection{briSelectionLog++ e briSelectionLog$--$} 
-	Quando observamos a distribuição do fator de qualidade, percebemos que ela não é normal.
+	Quando observamos a distribuição do fator de qualidade, percebemos que ela não é normal mas sim uma log-normal.
+	
+	\begin{figure}[H]
+		\centering
+		\begin{minipage}[b]{0.4\textwidth}
+			\includegraphics[width=\textwidth]{imgs/histograma.png}
+			\caption{Histograma da Qualidade}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[b]{0.4\textwidth}
+			\includegraphics[width=\textwidth]{imgs/boxplot.png}
+			\caption{Boxplot da Qualidade}
+		\end{minipage}
+	\end{figure}
+	
+	Mas é possível fazer uma normalização dessa qualidade por meio do logaritmo.
+	
+		\begin{figure}[H]
+			\centering
+			\begin{minipage}[b]{0.4\textwidth}
+				\includegraphics[width=\textwidth]{imgs/histograma_log.png}
+				\caption{Histograma da Qualidade}
+			\end{minipage}
+			\hfill
+			\begin{minipage}[b]{0.4\textwidth}
+				\includegraphics[width=\textwidth]{imgs/boxplot_log.png}
+				\caption{Boxplot da Qualidade}
+			\end{minipage}
+		\end{figure}
 		
-	
+		Essa é uma forma de talvez balancear melhor a amostragem dos dados da classe dominante.
+		
+		Assim fazemos exatamente como em $briSelect++$ e $briSelect--$ substituindo $q_k$ por $\frac{1}{q_k}$
+		
 	\section{Testes e Resultados}
+	Os testes foram feitos utilizando os 5 métodos descritos, alem de 2 testes de referência, com todas as amostras da classe dominante e com um \textit{undersampling} aleatório dessas amostras.
+	
+	Foi feita uma validação cruzada com 10 \textit{folds}, para 10 arquiteturas diferentes de redes neurais \textit{multilayer perceptron} para cada uma das bases e métodos de amostragem. Então foi selecionada a arquitetura teve melhor resultado médio para cada método e base de dados.
+	
+	Isso foi feito para as seguintes bases :
+	
+	\begin{table}[H]
+		\centering
+		\begin{tabular}{rlrrrr}
+			\hline
+			& Nome & N. Pts & Pts. Dominante & Pts Minoritária & Desbalanceamento \\ 
+			\hline
+			& MNIST 0 vs ALL & 70000 & 63097 & 6903 & 0.11 \\ 
+			& MNIST 1 vs ALL & 70000 & 62123 & 7877 & 0.13 \\ 
+			& MNIST 2 vs ALL & 70000 & 63010 & 6990 & 0.11 \\ 
+			& MNIST 3 vs ALL & 70000 & 62859 & 7141 & 0.11 \\ 
+			& MNIST 4 vs ALL & 70000 & 63176 & 6824 & 0.11 \\ 
+			& MNIST 5 vs ALL & 70000 & 63687 & 6313 & 0.10 \\ 
+			& MNIST 6 vs ALL & 70000 & 63124 & 6876 & 0.11 \\ 
+			& MNIST 7 vs ALL & 70000 & 62707 & 7293 & 0.12 \\ 
+			& MNIST 8 vs ALL & 70000 & 63175 & 6825 & 0.11 \\ 
+			& MNIST 9 vs ALL & 70000 & 63042 & 6958 & 0.11 \\ 
+			& Poker Data & 1025010 & 1017261 & 7749 & 0.01 \\ 
+			& Skin Data & 245057 & 194198 & 50859 & 0.26 \\ 
+			\hline
+		\end{tabular}
+	\end{table}
+	
+	Assim foram obtidos os seguintes resultados em relação a AUC da média dos dados de testes.
+	
+	\begin{table}[H]
+		\centering
+		\tiny
+		\begin{tabular}{rlrrrrrrr}
+			\hline
+			Dataset & Baseline & Undersampling & $briSelect$ & $briSelect++$ & $briSelecLog++$ & $briSelecLog--$& $briSelectLog--$ \\ 
+			\hline
+			0 vs ALL & 0.99 & 0.99 & 0.98 & 0.99 & 0.99 & 0.99 & 0.99 \\ 
+			1 vs ALL & 0.99 & 0.99 & 0.99 & 0.99 & 0.99 & 0.99 & 0.99 \\ 
+			2 vs ALL & 0.99 & 0.90 & 0.85 & 0.98 & 0.99 & 0.99 & 0.98 \\ 
+			3 vs ALL & 0.99 & 0.91 & 0.83 & 0.98 & 0.98 & 0.98 & 0.98 \\ 
+			4 vs ALL & 0.99 & 0.97 & 0.95 & 0.99 & 0.99 & 0.99 & 0.99 \\ 
+			5 vs ALL & 0.99 & 0.86 & 0.81 & 0.98 & 0.99 & 0.98 & 0.98 \\ 
+			6 vs ALL & 0.99 & 0.98 & 0.95 & 0.99 & 0.99 & 0.99 & 0.99 \\ 
+			7 vs ALL & 0.99 & 0.97 & 0.91 & 0.99 & 0.99 & 0.99 & 0.99 \\ 
+			8 vs ALL & 0.99 & 0.86 & 0.73 & 0.98 & 0.98 & 0.98 & 0.98 \\ 
+			9 vs ALL & 0.99 & 0.92 & 0.87 & 0.98 & 0.98 & 0.98 & 0.98 \\ 
+			Poker Data & 0.53 & 0.53 & 0.53 & 0.53 & 0.53 & 0.53 & 0.53 \\ 
+			Skin Data & 0.99 & 0.98 & 0.94 & 0.99 & 0.98 & 0.98 & 0.94 \\ 
+			\hline
+		\end{tabular}
+	\end{table}
+	
+	Em relação ao tempo de treinamento temos a seguinte tabela, onde 1 representa o tempo do modelo mais demorado para essa base  :
 	
 	
-	\section{Conclusão}
-	
-	
+	  	\begin{table}[H]
+	  		\centering
+	  		\tiny
+	  		\begin{tabular}{rlrrrrrrr}
+	  			\hline
+	  			Dataset & Baseline & Undersampling & $briSelect$ & $briSelect++$ & $briSelecLog++$ & $briSelecLog--$& $briSelectLog--$ \\ 
+  \hline
+0 vs ALL & 0.75 & 0.12 & 0.18 & 0.12 & 1.00 & 0.15 & 0.12 \\ 
+1 vs ALL & 1.00 & 0.81 & 0.19 & 0.18 & 0.17 & 0.19 & 0.23 \\ 
+2 vs ALL & 1.00 & 0.05 & 0.05 & 0.05 & 0.05 & 0.05 & 0.05 \\ 
+3 vs ALL & 1.00 & 0.20 & 0.20 & 0.15 & 0.16 & 0.16 & 0.17 \\ 
+4 vs ALL & 1.00 & 0.11 & 0.11 & 0.09 & 0.09 & 0.09 & 0.09 \\ 
+5 vs ALL & 1.00 & 0.06 & 0.21 & 0.05 & 0.04 & 0.05 & 0.05 \\ 
+6 vs ALL & 0.83 & 0.16 & 1.00 & 0.14 & 0.14 & 0.13 & 0.13 \\ 
+7 vs ALL & 1.00 & 0.22 & 0.21 & 0.18 & 0.17 & 0.17 & 0.17 \\ 
+ 8 vs ALL & 1.00 & 0.05 & 0.06 & 0.05 & 0.04 & 0.05 & 0.05 \\ 
+ 9 vs ALL & 1.00 & 0.74 & 0.15 & 0.16 & 0.16 & 0.15 & 0.16 \\ 
+Poker Data & 1.00 & 0.02 & 0.03 & 0.02 & 0.03 & 0.04 & 0.03 \\ 
+Skin Data & 1.00 & 0.79 & 0.78 & 0.35 & 0.79 & 0.81 & 0.42 \\ 
+  \hline
+\end{tabular}
+\end{table}
+
+\section{Conclusão}
+Os testes foram um tanto quanto inconclusivos. 
+
+Foi possível observar que para as bases de dados utilizadas, o resultado das subamostragens foram extremamente similares aos resultados obtidos com todas as amostras. Nesse sentido não foi possível observar um ganho em termos de AUC.
+
+Porém quando comparamos apenas as técnicas de \textit{undersampling}, observamos que o \textit{briSelect} claramente não é uma boa alternativa. Além disso é possível perceber que as demais técnicas que utilizam o critério de qualidade são superiores ao \textit{undersampling} aleatório. Ademais, houve uma pequena vantagem do \textit{briSelect++} e do \textit{briSelectLog++} em relação ao \textit{$briSelect--$} e o \textit{$briSelectLog--$} .
+
+Em relação ao tempo de treinamento, quase que de forma constante, os métodos de subamostragens foram mais rápidos que o \textit{baseline}.
+
+O trabalho ainda precisa de melhorias e mais testes. Ademais, seria interessante a criação de uma nova forma de normalizar o fator de qualidade, como por exemplo a utilização de uma medida que diferenciasse pontos da superfície de decisão à pontos da periferia  da distribuição da classe. Uma outra formar de normalizar esse critério, talvez seria a utilização da qualidade de uma media geométrica dos centros como fator de normalização.
+
+
 \end{document}
