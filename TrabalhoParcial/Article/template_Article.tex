@@ -2,6 +2,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage{url}
+\usepackage{float}
 \usepackage{breakurl} 
 \usepackage[breaklinks]{hyperref}
 \usepackage{lipsum}
@@ -49,83 +50,137 @@
 \author{Paulo Cirino}
 
 \begin{document}
-
-\maketitle
-
-\begin{abstract}
 	
-\end{abstract}
-
-\section{Introdução}
-
-Esse trabalho é fundamento em um algorítimo de \textit{fuzzy clustering}, à ser publicado, que foi criado para acelerar o método \textit{Fuzzy C Means}. Ele atinge seu objetivo por meio da remoção de pontos da bordas com o auxilio de um fator de qualidade, que diz respeito a pertinência de cada amostra à todos os \textit{clusters}.
-
-Os algorítimo de  \textit{fuzzy clustering } permitem que uma amostra de um \textit{data set} pertença, ao mesmo tempo, à múltiplos agrupamentos. O nível que uma amostra pertence a cada \textit{cluster} é tradicionalmente chamado de \textbf{pertinência $\mu_{i}(x_j)$}, que é a pertinência da amostra $x_j$ para o \textit{cluster} $i$.
-
-A função de custo $J$, associada à problemas de \textit{fuzzy clustering}, pode ser definida em 
-\ref{eqJ1}.
-\begin{equation}
-\label{eqJ1}
-\begin{aligned}
-& {\text{min}}
-& & J \\
-& \text{sujeito a}
-& & \sum_{k=1}^c u_{ik}=1,   \quad k=1,2,...,N \\
-\end{aligned}
-\end{equation}
-
-Onde $J$ é definido em \ref{eqJ2}.
-\begin{equation}
-\label{eqJ2}
-J = \sum_{i=1}^c \sum_{k=1}^N u_{ik}^2 d_{ik}^2
-\end{equation} 
-
-
-Nessa situação $\mu_{ik}$, é a pertinência da amostra $k$ em relação ao centro $i$. Adotando a solução de Multiplicadores de Lagrange, a nova função de custo assume a forma descrita em \ref{eqJ22}, com derivadas parciais \ref{eqdjdl} e \ref{eqdjdu}. 
-
-\begin{equation}
-\label{eqJ22}
-J = \sum_{i=1}^c \sum_{k=1}^N \left [  u_{ik}^2 d_{ik}^2 - \lambda (\sum_{m=1}^c u_{mk}-1)\right]
-\end{equation}
-
-\begin{equation}
-\label{eqdjdl}
-{{\partial J} \over {\partial \lambda}} = \sum_{m=1}^c u_{mk}-1 : {{\partial J} \over {\partial \lambda}} = 0 \implies \sum_{i=1}^c u_{ik}=1
-\end{equation}
-
-\begin{equation}
-\label{eqdjdu}
-{{\partial J} \over {\partial u_{st}}} = 2u_{st} d_{st}^2 - \lambda : {{\partial J} \over {\partial u_{st}}} = 0 \implies u_{st} = {\lambda \over {2d_{st}^2}}
-\end{equation}
-
-Assim, a equação \ref{eqLamdaT}, representa cada um dos multiplicadores de Lagrange do \textit{data set}.
-
-\begin{equation}
-\label{eqLamdaT}
-\lambda_{k} = {2 \over {\sum_{j=1}^c {1 \over d_{jk}^2}}}, \quad k=1,2...,N
-\end{equation}
-
-Assim é possível definir uma medida de qualidade para cada amostra, descrita na equação, \ref{eqqk}. A medida $q_k$ de qualidade, é obtida para cada amostra $\mathbf{x}_k$ de $\mathbf{X}=\{x_i \in \mathbb{R^d} | i=1...N\}$, e representa uma medida de incerteza da pertinência $\mu_{ik}$.
-
-\begin{equation}
-\label{eqqk}
-q_k = 1 - c^c \prod_{i=1}^c {1 \over \mu_{ik}}
-\end{equation}
-
-Substituindo a equação \ref{eqdjdu} em \ref{eqqk}, podemos representar $q_k$ em \ref{eqqk_lambda_a0}
-
-\begin{equation}
-\label{eqqk_lambda_a0}
-q_k = 1 - {2 \over {\lambda_k}} c^c \prod_{i=1}^c d_{ik}^2
-\end{equation}
-
-É importante notar que amostras fortemente ligadas a um determinado centro, terão $q_k$ muito próximo à $1$, aquelas que estão distantes terão valores muito próximos a 0.
-
-
-\section{Método}
-
-\section{Resultados}
-
-\section{Conclusão}
-
+	\maketitle
+	
+	\begin{abstract}
+		
+	\end{abstract}
+	
+	\section{Introdução}
+	
+	Esse trabalho é fundamento em um algorítimo de \textit{fuzzy clustering}, à ser publicado, que foi criado para acelerar o método \textit{Fuzzy C Means}. No trabalho feito, se atinge o objetivo por meio da remoção de pontos da bordas com o auxilio de um fator de qualidade, que diz respeito a pertinência de cada amostra à todos os \textit{clusters}.
+	
+	Os algorítimo de  \textit{fuzzy clustering } permitem que uma amostra de um \textit{data set} pertença, ao mesmo tempo, à múltiplos agrupamentos. O nível que uma amostra pertence a cada \textit{cluster} é tradicionalmente chamado de \textbf{pertinência $\mu_{i}(x_j)$}, que é a pertinência da amostra $x_j$ para o \textit{cluster} $i$.
+	
+	A função de custo $J$, associada à problemas de \textit{fuzzy clustering}, pode ser definida em 
+	\ref{eqJ1}.
+	\begin{equation}
+	\label{eqJ1}
+	\begin{aligned}
+	& {\text{min}}
+	& & J \\
+	& \text{sujeito a}
+	& & \sum_{k=1}^c u_{ik}=1,   \quad k=1,2,...,N \\
+	\end{aligned}
+	\end{equation}
+	
+	Onde $J$ é definido em \ref{eqJ2}.
+	\begin{equation}
+	\label{eqJ2}
+	J = \sum_{i=1}^c \sum_{k=1}^N u_{ik}^2 d_{ik}^2
+	\end{equation} 
+	
+	Nessa situação $\mu_{ik}$, é a pertinência da amostra $k$ em relação ao centro $i$. Adotando a solução de Multiplicadores de Lagrange, a nova função de custo assume a forma descrita em \ref{eqJ22}, com derivadas parciais \ref{eqdjdl} e \ref{eqdjdu}. 
+	
+	\begin{equation}
+	\label{eqJ22}
+	J = \sum_{i=1}^c \sum_{k=1}^N \left [  u_{ik}^2 d_{ik}^2 - \lambda (\sum_{m=1}^c u_{mk}-1)\right]
+	\end{equation}
+	
+	\begin{equation}
+	\label{eqdjdl}
+	{{\partial J} \over {\partial \lambda}} = \sum_{m=1}^c u_{mk}-1 : {{\partial J} \over {\partial \lambda}} = 0 \implies \sum_{i=1}^c u_{ik}=1
+	\end{equation}
+	
+	\begin{equation}
+	\label{eqdjdu}
+	{{\partial J} \over {\partial u_{st}}} = 2u_{st} d_{st}^2 - \lambda : {{\partial J} \over {\partial u_{st}}} = 0 \implies u_{st} = {\lambda \over {2d_{st}^2}}
+	\end{equation}
+	
+	Assim, a equação \ref{eqLamdaT}, representa cada um dos multiplicadores de Lagrange do \textit{data set}.
+	
+	\begin{equation}
+	\label{eqLamdaT}
+	\lambda_{k} = {2 \over {\sum_{j=1}^c {1 \over d_{jk}^2}}}, \quad k=1,2...,N
+	\end{equation}
+	
+	Assim é possível definir uma medida de qualidade para cada amostra, descrita na equação, \ref{eqqk}. A medida $q_k$ de qualidade, é obtida para cada amostra $\mathbf{x}_k$ de $\mathbf{X}=\{x_i \in \mathbb{R^d} | i=1...N\}$, e representa uma medida de incerteza da pertinência $\mu_{ik}$.
+	
+	\begin{equation}
+	\label{eqqk}
+	q_k = c^c \prod_{i=1}^c {1 \over \mu_{ik}}
+	\end{equation}
+	
+	Substituindo a equação \ref{eqdjdu} em \ref{eqqk}, podemos representar $q_k$ em \ref{eqqk_lambda_a0}
+	
+	\begin{equation}
+	\label{eqqk_lambda_a0}
+	q_k = {2 \over {\lambda_k}} c^c \prod_{i=1}^c d_{ik}^2
+	\end{equation}
+	
+	É importante notar que amostras fortemente ligadas a um determinado centro, terão $q_k$ muito próximo à $0$, aquelas que estão distantes terão valores tendendo à $\infty$.
+	
+	Uma forma alternativa de enxergar o índice de qualidade é substituindo a equação \ref{eqLamdaT} em \ref{eqqk_lambda_a0}.
+	
+	\begin{equation}
+	\label{qk_final}
+	q_k = c^c  \frac{ \prod_{i=1}^c d_{ik}^2} {\sum_{i = 1}^{c}d_{ik}^2}
+	\end{equation}
+	
+	Uma forma de visualizar essa qualidade é por meio do gráfico abaixo:
+	
+	\begin{figure}[H]
+		\includegraphics[width=\linewidth]{imgs/qualidade_plot.png}
+		\caption{Gráfico de 2 normais, onde cor e as curvas de nível representam a qualidade}
+		\label{fig:qplot}
+	\end{figure}
+	
+	Visto que, é possível calcular um índice de qualidade para cada amostra que diz respeito à quanto um ponto faz parte ou não de um agrupamento. É possível utilizar a informação da qualidade para fazer seleção de amostras pertinentes.
+	
+	Em um senário de classificação desbalanceada, é possível então, fazer uma subamostragem da classe dominante, no sentido de balancear o problema. 
+	
+	\section{Método}
+	Foram propostos um total de 5 abordagens de amostragem utilizando essa qualidade. Para esse método, foram considerados apenas problemas binários desbalanceados. 
+	
+	O que é comum em todas as abordagens é que foram selecionadas $N_{minority}$ das $N_{majority}$ amostras da classe majoritária, tal que $N_{minority} < N_{majority}$.
+	
+	\subsection{briSelection} 
+	
+	A primeira abordagem proposta foi a de \textit{briSelection}, onde são selecionadas as $N_{minority}$ amostras da classe majoritária com maior fator de qualidade. 
+	
+	Essa abordagem têm o efeito de selecionar os pontos marginais da classe dominante. Isso pode ser positivo no sentido de amostras apenas os pontos que definem o contorno da superfície de decisão, porém, pode ser muito negativo em situações onde os dados possuem muitos \textit{outliers}. 
+	
+	\subsection{briSelection++} 
+	s abordagem \textit{briSelection++} é inspiradas na metodologia de inicialização do método \textbf{FCM++}.
+	
+	Isso é feito de forma que quanto maior a qualidade de uma amostra da classe dominantes, maior a probabilidade de essa amostra ser selecionada, assim como mostra a equação \ref{briSelectionPlusPlusEq}.
+	
+	\begin{equation}
+	\label{briSelectionPlusPlusEq}
+	P(x_k\mid q_k) = N_{minority} \frac{q_k}{\sum_{k = 1}^{N_{majority}} q_k}  \quad k = 1,2,...,N_{majority}
+	\end{equation}
+	
+	Essa metodologia possui a vantagem de amostrar a distribuição da classe dominante como um todo, nas regiões centrais por conta da alta densidade de pontos e nas periferias por causa do alto índice de qualidade. Isso possui uma vantagem de representar todos os dados e não só as bordas.
+	
+	\subsection{briSelection$--$} 
+	A metodologia \textit{briSelection$--$} é exatamente igual ao \textit{$briSelection++$}, só que $q_k$ é substituído por $\frac{1}{q_k}$, como mostra a formula \ref{briSelectionNegNegEq}.
+	
+		\begin{equation}
+		\label{briSelectionNegNegEq}
+		P(x_k\mid q_k) = N_{minority} \frac{\frac{1}{q_k}}{\sum_{k = 1}^{N_{majority}} \frac{1}{q_k}}  \quad k = 1,2,...,N_{majority}
+		\end{equation}
+		
+	Essa alteração na formulação permite que o centro da distribuição da classe dominante seja muito bem representado, mas ainda criando uma probabilidade de os pontos da margem também serem amostrados.
+	
+	\subsection{briSelectionLog++ e briSelectionLog$--$} 
+	Quando observamos a distribuição do fator de qualidade, percebemos que ela não é normal.
+		
+	
+	\section{Testes e Resultados}
+	
+	
+	\section{Conclusão}
+	
+	
 \end{document}
