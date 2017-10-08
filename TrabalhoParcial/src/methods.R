@@ -1,5 +1,5 @@
 require('tidyverse')
-require('RSNNS')
+require('mxnet')
 require('pROC')
 require('caret')
 
@@ -23,6 +23,32 @@ baseLine <- function(X, Y, Q, seed = Sys.time()){
          Q = NA ) 
 }
 
+baseLineRemove <- function(X, Y, Q, seed = Sys.time()){
+    set.seed(seed)
+    
+    Data <- data.frame(X = X, Y = Y, Q = Q)
+    
+    auxMinrityClass <- Data %>% 
+        dplyr::group_by(Y) %>%
+        dplyr::summarise(count = n()) %>%
+        dplyr::top_n(n = -1, wt = count)
+    
+    minorityY <- auxMinrityClass$Y
+    minorityCount <- auxMinrityClass$count
+    
+    Data <- Data %>%
+        dplyr::group_by(Y) %>%
+        dplyr::top_n(n = minorityCount) %>%
+        dplyr::ungroup() %>%
+        data.frame()
+    
+    list(X = Data %>% dplyr::select(-Q, -Y) %>% data.matrix(),
+         Y = Data$Y,
+         Q = Data$Q
+    )
+}
+
+
 briSelection <- function(X, Y, Q, seed = Sys.time()){
     set.seed(seed)
     
@@ -45,7 +71,7 @@ briSelection <- function(X, Y, Q, seed = Sys.time()){
     list(X = Data %>% dplyr::select(-Q, -Y) %>% data.matrix(),
          Y = Data$Y,
          Q = Data$Q
-         )
+    )
 }
 
 briSelectionPlusPlus <- function(X, Y, Q, seed = Sys.time()){
@@ -60,7 +86,7 @@ briSelectionPlusPlus <- function(X, Y, Q, seed = Sys.time()){
     
     minorityY <- auxMinrityClass$Y
     minorityCount <- auxMinrityClass$count
-        
+    
     Data <- Data %>%
         dplyr::group_by(Y) %>%
         dplyr::sample_n(size = minorityCount, replace = FALSE, weight = Q) %>%
@@ -152,9 +178,11 @@ briSelectionPlusPlusLogNeg <- function(X, Y, Q, seed = Sys.time()){
     )
 }
 
-runModel <- function(X, Y, Q, networkSize, functionName, expo = 2, distanceMetric = 'euclidean',
+runModel <- function(X, Y, Q, networkSize, functionName,
                      seed = Sys.time(),
-                     learnFuncParams = 0.1, maxit = 5000, trainAndTestRatio = 0.3){
+                     learnRate = 0.05, momentum = 0.01, 
+                     maxit = 25, evalMetric = mxnet::mx.metric.accuracy,
+                     trainAndTestRatio = 0.3){
     set.seed(seed)
     method <- get(functionName)
     
@@ -168,40 +196,55 @@ runModel <- function(X, Y, Q, networkSize, functionName, expo = 2, distanceMetri
     Qtest <- Q[-pos]
     
     result <- method(X = Xtrain, Y = Ytrain, Q = Qtrain, seed = seed)
-    XtrainSelected <- result[['X']]
-    YtrainSelected <- result[['Y']]
+    XtrainSelected <- as.matrix( result[['X']] )
+    YtrainSelected <- as.numeric( result[['Y']] )
     QtrainSelected <- result[['Q']]
+    colnames(XtrainSelected) <- colnames(X)
+    
+    initTs <- as.numeric(Sys.time())
+    model <- mxnet::mx.mlp( XtrainSelected, YtrainSelected,
+                            hidden_node = networkSize,
+                            out_node = 2,
+                            out_activation = "softmax",
+                            num.round = maxit, 
+                            learning.rate = learnRate,
+                            momentum = momentum,
+                            eval.metric = evalMetric )
+    compTime <- as.numeric(Sys.time()) - initTs
+    
+    predYtrain <- t( predict(model, XtrainSelected) )
+    predYtest <- t( predict(model, Xtest) )
+    
+    if( sum(predYtrain[, 1] - YtrainSelected) < sum(predYtrain[, 2] - YtrainSelected) ){
+        predYtrainA <- predYtrain[, 1]
+        predYtestA <- predYtest[, 1]
+    } else {
+        predYtrainA <- predYtrain[, 2]
+        predYtestA <- predYtest[, 2] 
+    }
+    
+    predYtrainBin <- apply(predYtrain, 1, which.max) - 1
+    predYtestBin <- apply(predYtest, 1, which.max) - 1
     
     
-    YtrainSelected <- RSNNS::decodeClassLabels( x = YtrainSelected)
-    Ytest <- RSNNS::decodeClassLabels( x = Ytest )
-    
-    model <- RSNNS::mlp(x = XtrainSelected, y = YtrainSelected,
-                        size = networkSize, learnFuncParams = learnFuncParams, 
-                        maxit = maxit, 
-                        inputsTest = Xtest, targetsTest = Ytest)
-    
-    predYtrain <- model$fitted.values
-    predYtest <- model$fittedTestValues
-    
-    trainConfMatrix <- caret::confusionMatrix(round(predYtrain[, 1]), YtrainSelected[, 1])
-    trainAUC <- ModelMetrics::auc(actual = YtrainSelected[, 1], predicted = predYtrain[, 1])
+    trainConfMatrix <- caret::confusionMatrix(predYtrainBin, YtrainSelected)
+    trainAUC <- ModelMetrics::auc(actual = YtrainSelected, predicted = predYtrainA)
     trainMetrics <- c(trainConfMatrix$overall, trainConfMatrix$byClass, AUC = trainAUC)
     
-    testConfMatrix <- caret::confusionMatrix(round(predYtest[, 1]), Ytest[, 1])
-    testAUC <- ModelMetrics::auc(actual = Ytest[, 1], predicted = predYtest[, 1])
+    testConfMatrix <- caret::confusionMatrix(predYtestBin, Ytest)
+    testAUC <- ModelMetrics::auc(actual = Ytest, predicted = predYtestA)
     testMetrics <- c(testConfMatrix$overall, testConfMatrix$byClass, AUC = testAUC)
     
-    results <- c(functionName = functionName,
+    results <- c(functionName = as.character( functionName ),
+                 nTrainningPoints = length(YtrainSelected),
+                 compTime = compTime,
                  seed = seed,
                  trainAndTestRatio = trainAndTestRatio,
                  maxit = maxit,
-                 learnFuncParams = learnFuncParams,
-                 expo = expo,
-                 distanceMetric = distanceMetric,
+                 learnRate = learnRate, momentum = momentum,
                  networkSize = paste(networkSize, collapse = '-'),
                  train = trainMetrics, test = testMetrics)
-
+    
 }
 
 
@@ -212,41 +255,45 @@ runAllTests <- function(DataList,
                                          'briSelectionPlusPlus', 
                                          'briSelectionPlusPlusNeg', 
                                          'briSelectionPlusPlusLog',
-                                         'briSelectionPlusPlusLogNeg'),
-                        saveFile = paste('save_', Sys.Date(), '.csv', sep = ''),
+                                         'briSelectionPlusPlusLogNeg',
+                                         'baseLineRemove'),
+                        saveFile = paste('./data/save_', Sys.Date(), '.csv', sep = ''),
                         echoEachNMin = 1){
     itersTable <- expand.grid(dataSetName = names(DataList),
                               netWorkSizePos = 1:length(networkSizesList),
                               seed = seedsVet,
-                              methodName = methodsNames)
+                              methodName = methodsNames) %>%
+        dplyr::arrange(seed, netWorkSizePos, dataSetName, methodName)
+    
     globalResult <- data.frame()
     lastSaveTS <- as.numeric(Sys.time())
-    for(i in 1:nrow(itersTable)){
+    NTotalIters <- nrow(itersTable)
+    for(i in 1:NTotalIters){
         iterData <- itersTable[i, ]
         
         DataSet <- DataList[[iterData$dataSetName]]
         iterX <- DataSet$X
         iterY <- DataSet$Y
-        iterQ <- getQuality(X = iterX, Y = iterY)
+        iterQ <- DataSet$Q
         
         networkSize <- networkSizesList[[iterData$netWorkSizePos]]
         seed <- iterData$seed
-        methodName <- iterData$methodName
+        methodName <- as.character( iterData$methodName )
         
         iterResult <- runModel(X = iterX, Y = iterY, Q = iterQ, 
                                networkSize = networkSize,
                                functionName = methodName,
                                seed = seed)
-        globalResult[i, ] <- c( dataSetName = iterData$dataSetName,
-                                iterResult)
-        write.csv(x = c( dataSetName = iterData$dataSetName, iterResult),
-                  file = saveFile,
-                  append = TRUE)
         
-        if(as.numeric(Sys.time()) - lastSaveTS > 60 * saveEachNMin){
-            cat('Iter ', i, '- At', as.character(Sys.time()))
-            print(globalResult)
-            
+        auxResults <- data.frame( t(c(dataSetName = as.character(iterData$dataSetName), 
+                                      iterResult) ) )
+        globalResult <- dplyr::bind_rows(globalResult, auxResults)
+        
+        if(as.numeric(Sys.time()) - lastSaveTS > 60 * echoEachNMin){
+            cat('Iter ', i, '/', NTotalIters, ' - At', as.character(Sys.time()))
+            write.csv(x = globalResult,
+                      file = saveFile  )
         }
     }
+    write.csv
 }
