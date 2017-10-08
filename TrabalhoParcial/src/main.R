@@ -25,6 +25,7 @@ DataList <- makeMNISTDataList(DataList = DataList)
 DataList <- makePokerDataList(DataList = DataList)
 DataList <- makeSkinData(DataList = DataList)
 
+
 results <- runAllTests(DataList = DataList, 
                         networkSizesList = networkSizesList,
                         seedsVet = seedsVet)

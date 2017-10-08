@@ -14,7 +14,7 @@ makeMNISTDataList <- function(DataList = list()){
         iterY[!iterPos] <- 0
         
         iterQ <- getQuality(X = X, Y = iterY, expo = 2, distanceMetric = 'euclidean')
-        iterName <- paste(i, ' vs ALL', sep = '' )
+        iterName <- paste('MNIST ', i, ' vs ALL', sep = '' )
         
         DataList[[iterName]] <- list(X = X,
                                      Y = iterY,
