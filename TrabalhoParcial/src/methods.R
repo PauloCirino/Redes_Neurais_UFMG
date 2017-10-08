@@ -23,6 +23,32 @@ baseLine <- function(X, Y, Q, seed = Sys.time()){
          Q = NA ) 
 }
 
+baseLineRemove <- function(X, Y, Q, seed = Sys.time()){
+    set.seed(seed)
+    
+    Data <- data.frame(X = X, Y = Y, Q = Q)
+    
+    auxMinrityClass <- Data %>% 
+        dplyr::group_by(Y) %>%
+        dplyr::summarise(count = n()) %>%
+        dplyr::top_n(n = -1, wt = count)
+    
+    minorityY <- auxMinrityClass$Y
+    minorityCount <- auxMinrityClass$count
+    
+    Data <- Data %>%
+        dplyr::group_by(Y) %>%
+        dplyr::top_n(n = minorityCount) %>%
+        dplyr::ungroup() %>%
+        data.frame()
+    
+    list(X = Data %>% dplyr::select(-Q, -Y) %>% data.matrix(),
+         Y = Data$Y,
+         Q = Data$Q
+    )
+}
+
+
 briSelection <- function(X, Y, Q, seed = Sys.time()){
     set.seed(seed)
     
@@ -189,12 +215,24 @@ runModel <- function(X, Y, Q, networkSize, functionName,
     predYtrain <- t( predict(model, XtrainSelected) )
     predYtest <- t( predict(model, Xtest) )
     
-    trainConfMatrix <- caret::confusionMatrix(round(predYtrain[, 2]), YtrainSelected)
-    trainAUC <- ModelMetrics::auc(actual = YtrainSelected, predicted = predYtrain[, 2])
+    if( sum(predYtrain[, 1] - YtrainSelected) < sum(predYtrain[, 2] - YtrainSelected) ){
+        predYtrainA <- predYtrain[, 1]
+        predYtestA <- predYtest[, 1]
+    } else {
+        predYtrainA <- predYtrain[, 2]
+        predYtestA <- predYtest[, 2] 
+    }
+    
+    predYtrainBin <- apply(predYtrain, 1, which.max) - 1
+    predYtestBin <- apply(predYtest, 1, which.max) - 1
+    
+    
+    trainConfMatrix <- caret::confusionMatrix(predYtrainBin, YtrainSelected)
+    trainAUC <- ModelMetrics::auc(actual = YtrainSelected, predicted = predYtrainA)
     trainMetrics <- c(trainConfMatrix$overall, trainConfMatrix$byClass, AUC = trainAUC)
     
-    testConfMatrix <- caret::confusionMatrix(round(predYtest[, 2]), Ytest)
-    testAUC <- ModelMetrics::auc(actual = Ytest, predicted = predYtest[, 2])
+    testConfMatrix <- caret::confusionMatrix(predYtestBin, Ytest)
+    testAUC <- ModelMetrics::auc(actual = Ytest, predicted = predYtestA)
     testMetrics <- c(testConfMatrix$overall, testConfMatrix$byClass, AUC = testAUC)
     
     results <- c(functionName = as.character( functionName ),
@@ -217,9 +255,10 @@ runAllTests <- function(DataList,
                                          'briSelectionPlusPlus', 
                                          'briSelectionPlusPlusNeg', 
                                          'briSelectionPlusPlusLog',
-                                         'briSelectionPlusPlusLogNeg'),
+                                         'briSelectionPlusPlusLogNeg',
+                                         'baseLineRemove'),
                         saveFile = paste('./data/save_', Sys.Date(), '.csv', sep = ''),
-                        echoEachNMin = 10){
+                        echoEachNMin = 1){
     itersTable <- expand.grid(dataSetName = names(DataList),
                               netWorkSizePos = 1:length(networkSizesList),
                               seed = seedsVet,
@@ -246,7 +285,7 @@ runAllTests <- function(DataList,
                                functionName = methodName,
                                seed = seed)
         
-        auxResults <- data.frame( t(c(dataSetName = iterData$dataSetName, 
+        auxResults <- data.frame( t(c(dataSetName = as.character(iterData$dataSetName), 
                                       iterResult) ) )
         globalResult <- dplyr::bind_rows(globalResult, auxResults)
         
